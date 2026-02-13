@@ -1,0 +1,20 @@
+# .gitignore for a Python project
+#
+# What it does
+# Ensures secrets (.env) aren’t committed.
+# Keeps local caches and editor files out of git.
+# Keeps the shared/ directory in the repo via .keep but ignores its contents.
+#
+# version B.1 260212
+
+.env
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.vscode/
+.idea/
+
+shared/*
+!shared/.keep
