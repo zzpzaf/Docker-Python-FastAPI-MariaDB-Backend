@@ -1,7 +1,7 @@
 
 # Docker-Python-FastAPI-MariaDB-Backend
-## A Docker stack that allows you to start working with a FastAPI-based, Python Backend app
-#### 260213
+## A Docker stack that allows you to start working with a FastAPI-based, Python Backend apps
+#### 260213-14
 
 
 ## Repository purpose
@@ -134,27 +134,26 @@ db/
     2026-02-13_add_table_x.sql
 ```
 
-#### How it is commonly used with MariaDB in Docker
+#### How the `db/init/` is commonly used with MariaDB in Docker
 
-MariaDB’s official Docker image supports automatic execution of `.sql` scripts placed in:
+MariaDB’s official Docker image supports automatic execution of `.sql` scripts placed in db/init/, such as:
+  *  001_schema.sql
+  *  002_seed.sql
+
+The 1st is used to define database schemas, tables, etc.,     
+The 2nd inserts initial (demo) data into tables
+
+So, the `db/init/` → is used for placing first-time initialization scripts. MariaDB will run those scripts **only the first time** the database volume is created (i.e., on initial initialization).
+
+In order to fire the initial execution process of the scripts, the following line should be included in the mariadb volumes section, in docker-compose.yml under mariadb: volumes:  
 
 ```
-/docker-entrypoint-initdb.d
+    - ./db/init:/docker-entrypoint-initdb.d:ro
 ```
 
-When you mount `./db/init` to that location, MariaDB will run those scripts **only the first time** the database volume is created (i.e., on initial initialization).
-
-In practice, that means:
-
-* **Good for:** initial schema creation, initial seed data
-* **Not good for:** ongoing updates after the DB already exists (because it won’t re-run on each start)
-
-So, the plan is typically:
-
-* `db/init/` → first-time initialization scripts
 * Later, schema changes are handled by a migration tool (e.g. Alembic) or by manually running scripts (e.g., via phpMyAdmin)
 
-*(You said “used later on for sql scripts to update MariaDB” — this folder is the right place to store them; the key is that auto-running only happens on first init unless you run them manually or via a migration system.)*
+
 
 ---
 
@@ -185,45 +184,94 @@ Profiles are expected to require explicit activation (normal behavior everywhere
 
 ## Start/stop/build usage (summary)
 
-### Build all dev apps at once
+### Build the full stack, all dev apps at once
 
 ```bash
 docker compose --profile app1 --profile app2 --profile app3 build
 ```
 
-### Start infrastructure
+<br>
+
+### Create all containers and start the full stack, all dev apps at once
+
+
+```bash
+docker compose --profile app1 --profile app2 --profile app3 up -d
+```
+
+Or
+
+
+### Create and start infrastructure containers, only 
 
 ```bash
 docker compose up -d mariadb phpmyadmin
 ```
 
-### Start app3 dev
+### Start only app3 dev container
 
 ```bash
 docker compose --profile app3 up -d app3
-```
+```  
 
-### Stop everything (keep DB data persistent)
+<br>
+
+
+### Stop all containers (keep DB data persistent)
 
 ```bash
-docker compose stop
+docker compose --profile app1 --profile app2 --profile app3 stop
 ```
+
+### Start all containers at aonce
+
+```bash
+docker compose --profile app1 --profile app2 --profile app3 start
+```
+
+<br>
+
 
 ### Remove containers (keep DB data)
 
 ```bash
-docker compose down
+ docker compose --profile app1 --profile app2 --profile app3 down 
 ```
+
+
+### Remove all containers <u>AND</u> DB data
+
+```bash
+ docker compose --profile app1 --profile app2 --profile app3 down --volumes
+```
+
 
 ---
 
 ## Where to check in browser
 
-* phpMyAdmin: `http://localhost:${PHPMYADMIN_PORT}`
-* FastAPI:
+* phpMyAdmin: `http://localhost:${PHPMYADMIN_PORT}`, e.g.: http://localhost:8080/
 
-  * app1 docs: `http://localhost:${FASTAPI_PORT_APP1}/docs`
-  * app2 docs: `http://localhost:${FASTAPI_PORT_APP2}/docs`
-  * app3 docs: `http://localhost:${FASTAPI_PORT_APP3}/docs`
+<br>
 
+* FastAPI Entry points:
 
+  * app1 docs: `http://localhost:${FASTAPI_PORT_APP1}/`, e.g.:  http://localhost:8000/
+  * app2 docs: `http://localhost:${FASTAPI_PORT_APP2}/`, e.g.:  http://localhost:8001/
+  * app3 docs: `http://localhost:${FASTAPI_PORT_APP3}/`, e.g.:  http://localhost:8002/
+
+<br>
+
+* FastAPI testing initial 'health' route:
+
+  * app1 docs: `http://localhost:${FASTAPI_PORT_APP1}/docs`, e.g.:  http://localhost:8000/health
+  * app2 docs: `http://localhost:${FASTAPI_PORT_APP2}/docs`, e.g.:  http://localhost:8001/health
+  * app3 docs: `http://localhost:${FASTAPI_PORT_APP3}/docs`, e.g.:  http://localhost:8002/health
+
+<br>
+
+* FastAPI Swagger auto-generated UI (per app)::
+
+  * app1 docs: `http://localhost:${FASTAPI_PORT_APP1}/docs`, e.g.:  http://localhost:8000/docs
+  * app2 docs: `http://localhost:${FASTAPI_PORT_APP2}/docs`, e.g.:  http://localhost:8001/docs
+  * app3 docs: `http://localhost:${FASTAPI_PORT_APP3}/docs`, e.g.:  http://localhost:8002/docs
