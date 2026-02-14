@@ -1,18 +1,19 @@
-# workspace/app1/main.py 
+# workspace/app1/app/main.py 
 # 
-# minimal FastAPI app
-#
-# What it does
-# Provides a simple endpoint you can test quickly:
-# GET http://localhost:8000/health
-#
-# version B.1 - 260212
+# Creates FastAPI app
+# Includes routers for health + catalog endpoints
+
 
 
 from fastapi import FastAPI
+from app.core.config import settings
+from app.routers import health_router, catalog_router
 
-app = FastAPI(title="app1")
+app = FastAPI(title=settings.app_name)
 
-@app.get("/health")
-def health():
-    return {"app": "app1", "ok": True}
+app.include_router(health_router) # just /health, no prefix
+app.include_router(health_router, prefix=settings.api_prefix)  # /api/health
+
+
+# app.include_router(catalog_router)
+app.include_router(catalog_router, prefix=settings.api_prefix)
