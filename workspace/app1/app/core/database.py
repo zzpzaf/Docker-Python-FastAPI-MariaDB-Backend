@@ -4,6 +4,9 @@
 # Creates a PyMySQL connection per request
 # Exposes dependency get_db() that yields conn
 
+# 260215: 
+#   - Switched to autocommit=False for better transaction management in POST/PUT/PATCH/DELETE routes.
+
 from contextlib import contextmanager
 import pymysql
 from pymysql.cursors import DictCursor
@@ -19,7 +22,8 @@ def _connect():
         database=settings.db_name,
         charset="utf8mb4",
         cursorclass=DictCursor,   # rows as dicts
-        autocommit=True,          # for GET-only it's fine; later we can manage transactions
+        # autocommit=True,          # for GET-only it's fine; later we can manage transactions
+        autocommit=False,  # IMPORTANT for POST/PUT/PATCH/DELETE
     )
 
 
