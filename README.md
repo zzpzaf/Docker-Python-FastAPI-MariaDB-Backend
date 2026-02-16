@@ -245,6 +245,31 @@ docker compose --profile app1 --profile app2 --profile app3 start
  docker compose --profile app1 --profile app2 --profile app3 down --volumes
 ```
 
+---
+## Day-by-day maintanence of an app - e.g., app1
+
+1) Rebuild the app1 image (dev target)
+```bash
+docker compose --profile app1 build --no-cache app1
+```
+2) Recreate the container (so it uses the new image)
+```bash
+docker compose --profile app1 up -d --force-recreate app1
+```
+3) Confirm the package (e.g. tenacity) is installed inside the container
+```bash
+docker compose --profile app1 exec app1 bash -lc "python -c 'import tenacity; print(tenacity.__version__)'"
+```
+
+When we just make changes to our Python code, in most of cases, we just need to restart the container
+```bash
+docker compose --profile app1 restart app1   
+```
+or
+```bash
+docker compose --profile app1 up -d --force-recreate app1
+```
+
 
 ---
 

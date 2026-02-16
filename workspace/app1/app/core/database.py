@@ -6,6 +6,8 @@
 
 # 260215: 
 #   - Switched to autocommit=False for better transaction management in POST/PUT/PATCH/DELETE routes.
+# 260216:
+#   - Added automatic commit/rollback logic to ensure INSERT persistence
 
 from contextlib import contextmanager
 import pymysql
@@ -29,16 +31,25 @@ def _connect():
 
 @contextmanager
 def get_conn():
+    """
+    Context manager for DB connection with automatic
+    commit / rollback handling.
+    """
     conn = _connect()
     try:
         yield conn
+        conn.commit()          # IMPORTANT: commit after successful use
+    except Exception:
+        conn.rollback()        # rollback if anything fails
+        raise
     finally:
         conn.close()
 
 
 def get_db():
     """
-    FastAPI dependency that yields a live DB connection per request.
+    FastAPI dependency: yields connection per request.
+    Auto commit/rollback handled by get_conn().
     """
     with get_conn() as conn:
         yield conn

@@ -56,22 +56,43 @@ MariaDB (bookstore1)
 ## Project Structure
 
 ```
-
 workspace/app1/
-app/
-main.py
-core/
-config.py
-database.py
-routers/
-health.py
-catalog.py
-services/
-catalog.py
-schemas/
-category.py
-item.py
-
+.
+|-- README.md
+`-- app
+    |-- __init__.py
+    |-- core
+    |   |-- __init__.py
+    |   |-- config.py
+    |   `-- database.py
+    |-- main.py
+    |-- models
+    |   |-- __init__.py
+    |   |-- category.py
+    |   |-- category_item.py
+    |   `-- item.py
+    |-- routers
+    |   |-- __init__.py
+    |   |-- public			<-- indicates exposed/public endpoints
+    |   |   |-- __init__.py
+    |   |   |-- catalog.py
+    |   |   |-- health.py
+    |   |   `-- import_books.py
+    |   `-- internal			<-- indicates endpoints for internal (‘private’) use
+    |       `-- __init__.py
+    |-- schemas
+    |   |-- __init__.py
+    |   |-- category.py
+    |   `-- item.py
+    `-- services
+        |-- __init__.py
+        |-- db				<-- indicates services accessing local db
+        |   |-- __init__.py
+        |   |-- catalog.py
+        |   `-- items_sql.py
+        `-- external
+            |-- __init__.py
+            `-- external_books.py	<-- indicates services that access external APIs
 ```
 
 ---
@@ -98,47 +119,99 @@ Primary keys are `INT UNSIGNED AUTO_INCREMENT`.
 
 ## API Endpoints
 
-All endpoints are prefixed with:
 
-```
+# health
 
-/api
 
-```
+GET
+/health
+Health
 
-### Health
 
-```
+GET
+/api/health
+Health
 
-GET /api/health
+# catalog
 
-```
 
-Returns service status.
+GET
+/api/categories
+Get Categories
 
----
 
-### Categories
+POST
+/api/categories
+Create Category
 
-```
 
-GET /api/categories
-GET /api/categories/{category_id}
-GET /api/categories/{category_id}/items
+GET
+/api/categories/{category_id}
+Get Category
 
-```
 
----
+PUT
+/api/categories/{category_id}
+Put Category
 
-### Items
 
-```
+PATCH
+/api/categories/{category_id}
+Patch Category
 
-GET /api/items
-GET /api/items/{item_id}
-GET /api/items/{item_id}/categories
 
-````
+DELETE
+/api/categories/{category_id}
+Delete Category
+
+
+GET
+/api/items
+Get Items
+
+
+POST
+/api/items
+Create Item
+
+
+GET
+/api/items/{item_id}
+Get Item
+
+
+PUT
+/api/items/{item_id}
+Put Item
+
+
+PATCH
+/api/items/{item_id}
+Patch Item
+
+
+DELETE
+/api/items/{item_id}
+Delete Item
+
+
+GET
+/api/categories/{category_id}/items
+Get Items For Category
+
+
+GET
+/api/items/{item_id}/categories
+Get Categories For Item
+
+# import
+
+
+POST
+/api/import/book
+Import Book
+
+
 
 ---
 
@@ -153,17 +226,38 @@ GET /api/items/{item_id}/categories
   "categoryCrTimestamp": "2024-01-10T12:00:00",
   "categoryClientUUID": null
 }
-````
+```
 
 ---
+## Day-by-day maintanence
 
-## Running the Service
-
-Start using Docker profile:
-
+1) Start using Docker profile:
 ```bash
 docker compose --profile app1 up -d
 ```
+2) Rebuild the app1 image (dev target)
+```bash
+docker compose --profile app1 build --no-cache app1
+```
+3) Recreate the container (so it uses the new image)
+```bash
+docker compose --profile app1 up -d --force-recreate app1
+```
+4) Confirm the package (e.g. tenacity) is installed inside the container
+```bash
+docker compose --profile app1 exec app1 bash -lc "python -c 'import tenacity; print(tenacity.__version__)'"
+```
+
+When we just make changes to our Python code, in most of cases, we just need to restart the container
+```bash
+docker compose --profile app1 restart app1   
+```
+or
+```bash
+docker compose --profile app1 up -d --force-recreate app1
+```
+
+
 
 Access API:
 
